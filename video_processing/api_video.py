@@ -1,11 +1,14 @@
 import io
 import os
+import tempfile
 from google.oauth2 import service_account
 from google.cloud import speech
 import subprocess
 from flask import *
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 """
 speech to text code
@@ -22,7 +25,7 @@ def channel_cnt(file_name):
 
 
 def speech_to_text(file_name):
-
+    print("reached speech to text")
     client_file = 'sa_speech_demo.json'
     credentials = service_account.Credentials.from_service_account_file(client_file)
     client = speech.SpeechClient(credentials = credentials)
@@ -47,6 +50,8 @@ def speech_to_text(file_name):
     for result in response.results:
         audio_transcript+=((result.alternatives[0].transcript)+'.')
     
+    print("ifnished")
+    
     return audio_transcript
 
 
@@ -63,7 +68,7 @@ def mp4_to_wav(file_name):
 
 # TODO
 def process_transcript_with_ml():
-    pass
+    return jsonify({"ml results": "truth truth testing"})
 
 """
 API to integrate speech to text and ML model
@@ -71,14 +76,17 @@ API to integrate speech to text and ML model
 need a POST request so we can send the video as a file parameter
 """
 
-@app.route("/api/video", methods=["POST"])
+@app.route("/api/process-video", methods=["POST"])
 def process_video():
+    print("Received request")
     try:
         if 'file' not in request.files:
             return jsonify({'error': 'No file provided'}), 400
             
         file = request.files['file']
         video_id = request.form.get('video_id')
+
+        print("retrieved file")
         
         if not video_id:
             return jsonify({'error': 'No video_id provided'}), 400
@@ -88,23 +96,29 @@ def process_video():
             file.save(temp_video.name)
             temp_video_path = temp_video.name
 
+        print("reached tempfile")
+
         # Process video
         wav_path = mp4_to_wav(temp_video_path)
+        print("passed wavpath")
         transcript = speech_to_text(wav_path)
+        print("passed transcribing")
         ml_results = process_transcript_with_ml(transcript)
+
+        print("ran through speech processing")
         
         # Clean up temporary files
         os.remove(temp_video_path)
         os.remove(wav_path)
         
         # TODO
-        # Store ML results in database
-        # Implement database storage logic here
+        # don't store the ML results in the database
+        # instead send it as a json after the api is called and then everything will be submitted to the DB together
         
         return jsonify({
             "success": True,
             "video_id": video_id,
-            "results": ml_results
+            "ml results": ml_results
         })
 
     except Exception as e:
