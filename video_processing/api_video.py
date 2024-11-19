@@ -114,7 +114,7 @@ def process_video():
         # TODO
         # don't store the ML results in the database
         # instead send it as a json after the api is called and then everything will be submitted to the DB together
-        
+        print("reached end of API")
         return jsonify({
             "success": True,
             "video_id": video_id,
