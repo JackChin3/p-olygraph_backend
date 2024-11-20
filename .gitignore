@@ -71,6 +71,9 @@ instance/
 # Sphinx documentation
 docs/_build/
 
+# Secrets and credentials
+video_processing/api_key.json
+
 # PyBuilder
 .pybuilder/
 target/
