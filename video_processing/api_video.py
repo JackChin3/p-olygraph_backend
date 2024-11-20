@@ -26,9 +26,12 @@ def channel_cnt(file_name):
 
 def speech_to_text(file_name):
     print("reached speech to text")
-    client_file = 'sa_speech_demo.json'
+    client_file = '../api_key.json'
     credentials = service_account.Credentials.from_service_account_file(client_file)
     client = speech.SpeechClient(credentials = credentials)
+
+    print("initializing creds")
+    print(file_name)
 
     #load audio file
     audio_file = file_name 
@@ -56,19 +59,20 @@ def speech_to_text(file_name):
 
 
 def mp4_to_wav(file_name):
-    new_file = file_name[:-4]
-    print(new_file)
-    file_type = '.wav'
-    new_file += file_type
+    new_file = file_name[:-4] + '.wav'
+    print("new file: " + new_file)
     cmd = ['ffmpeg', '-i', file_name, '-ac', '2', '-f','wav',new_file]
     result = subprocess.run(cmd, capture_output=True, text=True)
 
+    if result.returncode != 0:
+        raise Exception(f"Error converting file: {result.stderr}")
     
-    return (result)
+    return (new_file)
 
 # TODO
-def process_transcript_with_ml():
-    return jsonify({"ml results": "truth truth testing"})
+def process_transcript_with_ml(transcript):
+    return transcript
+    # return jsonify({"ml results": "truth truth testing"})
 
 """
 API to integrate speech to text and ML model
